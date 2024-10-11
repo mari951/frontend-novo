@@ -1,103 +1,160 @@
 import java.sql.*;
-import java.util.*;
 
-public class NavegadorDeRegistro extends TelaDeAtualizacao {
-    public static void popularIds() {
+public class NavegadorDeRegistro extends TelaDePesquisa {
+    public static void pesquisar() {
         try {
-            ArrayList<String> idsTemp = new ArrayList<>();
-            idsTemp.add("Selecione aqui o id");
-            Connection conexao = MySQLConnector.conectar();
-            String strSqlPopularIds = "select * from `db_senac`.`tbl_senac` order by `id` asc;";
-            Statement stmSqlPopularIds = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            ResultSet rstSqlPopularIds = stmSqlPopularIds.executeQuery(strSqlPopularIds);
-            while (rstSqlPopularIds.next()) {
-                idsTemp.add(rstSqlPopularIds.getString("id"));
-            }
-            ids = idsTemp.toArray(new String[0]);
-            stmSqlPopularIds.close();
-        } catch (Exception e) {
-            lblNotificacoes.setText(setHtmlFormat("Não foi possível encontrar os ids! Por favor, verifique e tente novamente."));
-            System.err.println("Erro: " + e);
-        }
-    }
-
-    public static void atualizarId() {
-        try {
-            String atualizarNome = "";
-            String atualizarEmail = "";
-            String atualizarSenha = "";
-
-            if (txtNome.getText().trim().equals(nomeAtual) == false) {
-                atualizarNome = "`nome` = '" + txtNome.getText() + "'";
-            }
-
-            if (txtEmail.getText().trim().equals(emailAtual) == false) {
-                if (atualizarNome.length() > 0) {
-                    atualizarEmail = " and ";
-                }
-                atualizarEmail += "`email` = '" + txtEmail.getText() + "'";
-            }
-
-            if (String.valueOf(txtSenha.getPassword()).trim().equals(senhaAtual) == false) {
-                if (atualizarNome.length() > 0 || atualizarEmail.length() > 0) {
-                    atualizarSenha = " and ";
-                }
-                atualizarSenha += "`senha` = '" + String.valueOf(txtSenha.getPassword()) + "'";
-            }
-
-            if (atualizarNome.length() > 0 || atualizarEmail.length() > 0 || atualizarSenha.length() > 0) {
+            if (txtPesquisa.getText().trim().equals(txtUsuario) == false) {
+                limparCampos("");
                 Connection conexao = MySQLConnector.conectar();
-                String strSqlAtualizarId = "update `db_senac`.`tbl_senac` set " + atualizarNome + atualizarEmail + atualizarSenha + " where `id` = " + cbxId.getSelectedItem().toString() + ";";
-                // System.out.println(strSqlAtualizarId);
-                Statement stmSqlAtualizarId = conexao.createStatement();
-                stmSqlAtualizarId.addBatch(strSqlAtualizarId);
-                stmSqlAtualizarId.executeBatch();
-                nomeAtual = txtNome.getText();
-                emailAtual = txtEmail.getText();
-                senhaAtual = String.valueOf(txtSenha.getPassword());
-                stmSqlAtualizarId.close();
-                lblNotificacoes.setText("O id " + cbxId.getSelectedItem().toString() + " foi atualizado com sucesso!");
-            } else {
-                lblNotificacoes.setText("Não foram encontradas alterações para atualizar o id " + cbxId.getSelectedItem().toString());
-            }
-        } catch (Exception e) {
-            lblNotificacoes.setText(setHtmlFormat("Não foi possível atualizar o id! Por favor, verifique e tente novamente."));
-            System.err.println("Erro: " + e);
-        }
-    }
+                String strSqlPesquisa = "select * from `db_senac`.`tbl_senac` where `nome` like '%" + txtPesquisa.getText() + "%' or `email` like '%" + txtPesquisa.getText() + "%' order by `id` asc;";
+                Statement stmSqlPesquisa = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                ResultSet rstSqlPesquisa = stmSqlPesquisa.executeQuery(strSqlPesquisa);
+                if (rstSqlPesquisa.next()) {
+                    rstSqlPesquisa.last();
+                    int rowNumbers = rstSqlPesquisa.getRow();
+                    rstSqlPesquisa.first();
 
-    public static void limparCampos() {
-        txtNome.setText("");
-        txtEmail.setText("");
-        txtSenha.setText("");
-        cbxId.setSelectedIndex(0);
-    }
-
-    public static void atualizarCampos(String id) {
-        try {
-            if (cbxId.getSelectedIndex() > 0) {
-                Connection conexao = MySQLConnector.conectar();
-                String strSqlAtualizarCampos = "select * from `db_senac`.`tbl_senac` where `id` = " + id + ";";
-                Statement stmSqlAtualizarCampos = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                ResultSet rstSqlAtualizarCampos = stmSqlAtualizarCampos.executeQuery(strSqlAtualizarCampos);
-                if (rstSqlAtualizarCampos.next()) {
-                    txtNome.setText(rstSqlAtualizarCampos.getString("nome"));
-                    nomeAtual = txtNome.getText();
-                    txtEmail.setText(rstSqlAtualizarCampos.getString("email"));
-                    emailAtual = txtEmail.getText();
-                    txtSenha.setText(rstSqlAtualizarCampos.getString("senha"));
-                    senhaAtual = String.valueOf(txtSenha.getPassword());
-                    lblNotificacoes.setText("Campos atualizados com sucesso!");
+                    lblNotificacoes.setText(setHtmlFormat("Legal! Foi(Foram) encontrado(s) " + rowNumbers + " resultado(s)."));
+                    txtId.setText(rstSqlPesquisa.getString("id"));
+                    txtNome.setText(rstSqlPesquisa.getString("nome"));
+                    txtEmail.setText(rstSqlPesquisa.getString("email"));
+                    txtUsuario = txtPesquisa.getText();
+                    btnPesquisar.setEnabled(false);
+                    if (rowNumbers > 1) {
+                        btnProximo.setEnabled(true);
+                        btnUltimo.setEnabled(true);
+                    }
                 } else {
-                    lblNotificacoes.setText("Ops! Não foi encontrado o id selecionado. Por favor, verifique e tente novamente.");
+                    txtUsuario = txtPesquisa.getText();
+                    btnPesquisar.setEnabled(false);
+                    lblNotificacoes.setText(setHtmlFormat("Poxa vida! Não foram encontrados resultados para: \"" + txtPesquisa.getText() + "\"."));
                 }
-                stmSqlAtualizarCampos.close();
-            } else {
-                lblNotificacoes.setText("Selecione um id para continuar.");
-                limparCampos();
+                stmSqlPesquisa.close();
             }
         } catch (Exception e) {
-            lblNotificacoes.setText(setHtmlFormat("Não foi possível encontrar os ids! Por favor, verifique e tente novamente."));
+            lblNotificacoes.setText(setHtmlFormat("Não foi possível prosseguir com a pesquisa! Por favor, verifique e tente novamente."));
+            System.err.println("Erro: " + e);
+        }
+    }
+
+    public static void primeiroRegistro() {
+        try {
+            limparCampos("Você está no primeiro registro.");
+            Connection conexao = MySQLConnector.conectar();
+            String strSqlPesquisa = "select * from `db_senac`.`tbl_senac` where `nome` like '%" + txtPesquisa.getText() + "%' or `email` like '%" + txtPesquisa.getText() + "%' order by `id` asc;";
+            Statement stmSqlPesquisa = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rstSqlPesquisa = stmSqlPesquisa.executeQuery(strSqlPesquisa);
+            if (rstSqlPesquisa.next()) {
+                txtId.setText(rstSqlPesquisa.getString("id"));
+                txtNome.setText(rstSqlPesquisa.getString("nome"));
+                txtEmail.setText(rstSqlPesquisa.getString("email"));
+                btnProximo.setEnabled(true);
+                btnUltimo.setEnabled(true);
+            } else {
+                lblNotificacoes.setText(setHtmlFormat("Poxa vida! Não foram encontrados resultados para: \"" + txtPesquisa.getText() + "\"."));
+            }
+            txtUsuario = txtPesquisa.getText();
+            btnPesquisar.setEnabled(false);
+            stmSqlPesquisa.close();
+        } catch (Exception e) {
+            lblNotificacoes.setText(setHtmlFormat("Não foi possível prosseguir com a pesquisa! Por favor, verifique e tente novamente."));
+            System.err.println("Erro: " + e);
+        }
+    }
+
+    public static void registroAnterior() {
+        try {
+            String idAtual = txtId.getText();
+            String nomeAtual = txtNome.getText();
+            String emailAtual = txtEmail.getText();
+            limparCampos("Registro anterior posicionado com sucesso.");
+            Connection conexao = MySQLConnector.conectar();
+            String strSqlProximoRegistro = "select * from `db_senac`.`tbl_senac` where (`nome` like '%" + txtPesquisa.getText() + "%' or `email` like '%" + txtPesquisa.getText() + "%') and `id` < " + idAtual + " order by `id` desc;";
+            Statement stmSqlProximoRegistro = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rstSqlProximoRegistro = stmSqlProximoRegistro.executeQuery(strSqlProximoRegistro);
+            if (rstSqlProximoRegistro.next()) {
+                txtId.setText(rstSqlProximoRegistro.getString("id"));
+                txtNome.setText(rstSqlProximoRegistro.getString("nome"));
+                txtEmail.setText(rstSqlProximoRegistro.getString("email"));
+                btnPrimeiro.setEnabled(true);
+                btnAnterior.setEnabled(true);
+                btnProximo.setEnabled(true);
+                btnUltimo.setEnabled(true);
+            } else {
+                txtId.setText(idAtual);
+                txtNome.setText(nomeAtual);
+                txtEmail.setText(emailAtual);
+                btnProximo.setEnabled(true);
+                btnUltimo.setEnabled(true);
+                lblNotificacoes.setText("Você chegou ao primeiro registro.");
+            }
+            stmSqlProximoRegistro.close();
+        } catch (Exception e) {
+            lblNotificacoes.setText(setHtmlFormat("Não foi possível encontrar o próximo registro! Por favor, verifique e tente novamente."));
+            System.err.println("Erro: " + e);
+        }    }
+
+    public static void proximoRegistro() {
+        try {
+            String idAtual = txtId.getText();
+            String nomeAtual = txtNome.getText();
+            String emailAtual = txtEmail.getText();
+            limparCampos("Próximo registro posicionado com sucesso.");
+            Connection conexao = MySQLConnector.conectar();
+            String strSqlProximoRegistro = "select * from `db_senac`.`tbl_senac` where (`nome` like '%" + txtPesquisa.getText() + "%' or `email` like '%" + txtPesquisa.getText() + "%') and `id` > " + idAtual + " order by `id` asc;";
+            Statement stmSqlProximoRegistro = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rstSqlProximoRegistro = stmSqlProximoRegistro.executeQuery(strSqlProximoRegistro);
+            if (rstSqlProximoRegistro.next()) {
+                txtId.setText(rstSqlProximoRegistro.getString("id"));
+                txtNome.setText(rstSqlProximoRegistro.getString("nome"));
+                txtEmail.setText(rstSqlProximoRegistro.getString("email"));
+                btnPrimeiro.setEnabled(true);
+                btnAnterior.setEnabled(true);
+                btnProximo.setEnabled(true);
+                btnUltimo.setEnabled(true);
+            } else {
+                txtId.setText(idAtual);
+                txtNome.setText(nomeAtual);
+                txtEmail.setText(emailAtual);
+                btnPrimeiro.setEnabled(true);
+                btnAnterior.setEnabled(true);
+                lblNotificacoes.setText("Você chegou ao último registro.");
+            }
+            stmSqlProximoRegistro.close();
+        } catch (Exception e) {
+            lblNotificacoes.setText(setHtmlFormat("Não foi possível encontrar o próximo registro! Por favor, verifique e tente novamente."));
+            System.err.println("Erro: " + e);
+        }
+    }
+
+    public static void ultimoRegistro() {
+        try {
+            String idAtual = txtId.getText();
+            String nomeAtual = txtNome.getText();
+            String emailAtual = txtEmail.getText();
+            limparCampos("");
+            Connection conexao = MySQLConnector.conectar();
+            String strSqlProximoRegistro = "select * from `db_senac`.`tbl_senac` where `nome` like '%" + txtPesquisa.getText() + "%' or `email` like '%" + txtPesquisa.getText() + "%' order by `id` desc;";
+            Statement stmSqlProximoRegistro = conexao.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            ResultSet rstSqlProximoRegistro = stmSqlProximoRegistro.executeQuery(strSqlProximoRegistro);
+            if (rstSqlProximoRegistro.next()) {
+                txtId.setText(rstSqlProximoRegistro.getString("id"));
+                txtNome.setText(rstSqlProximoRegistro.getString("nome"));
+                txtEmail.setText(rstSqlProximoRegistro.getString("email"));
+                btnPrimeiro.setEnabled(true);
+                btnAnterior.setEnabled(true);
+                lblNotificacoes.setText("Você chegou ao último registro.");
+            } else {
+                txtId.setText(idAtual);
+                txtNome.setText(nomeAtual);
+                txtEmail.setText(emailAtual);
+                btnPrimeiro.setEnabled(true);
+                btnAnterior.setEnabled(true);
+                lblNotificacoes.setText("Você chegou ao último registro.");
+            }
+            stmSqlProximoRegistro.close();
+        } catch (Exception e) {
+            lblNotificacoes.setText(setHtmlFormat("Não foi possível encontrar o último registro! Por favor, verifique e tente novamente."));
             System.err.println("Erro: " + e);
         }
     }

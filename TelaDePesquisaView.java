@@ -1,4 +1,6 @@
 package view;
+import controller.*;
+
 
 public class TelaDePesquisaView {
     
@@ -8,7 +10,7 @@ import java.awt.event.*;
 import javax.swing.*;
 // import java.sql.*;
 
-public class TelaDePesquisa extends JFrame {
+public class TelaDePesquisaView extends JFrame {
     public static JLabel lblPesquisa;
     public static JTextField txtPesquisa;
 
@@ -125,7 +127,7 @@ public class TelaDePesquisa extends JFrame {
                         txtPesquisa.requestFocus();
                         return;
                     } else {
-                        NavegadorDeRegistro.pesquisar();
+                        TelaDePesquisaControlle.pesquisar();
                     }
                 }
             }
@@ -136,7 +138,7 @@ public class TelaDePesquisa extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent event) {
                     if (ntfCampoVazio() == false) {
-                        NavegadorDeRegistro.primeiroRegistro();
+                        TelaDePesquisaController.primeiroRegistro();
                     }
                 }
             }
@@ -147,7 +149,7 @@ public class TelaDePesquisa extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent event) {
                     if (ntfCampoVazio() == false) {
-                        NavegadorDeRegistro.registroAnterior();
+                        TelaDePesquisaController.registroAnterior();
                     }
                 }
             }
@@ -158,7 +160,7 @@ public class TelaDePesquisa extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent event) {
                     if (ntfCampoVazio() == false) {
-                        NavegadorDeRegistro.proximoRegistro();
+                        TelaDePesquisaController.proximoRegistro();
                     }
                 }
             }
@@ -227,7 +229,7 @@ public class TelaDePesquisa extends JFrame {
     }
 
     public static void main(String[] args) {
-        TelaDePesquisa appTelaDePesquisa = new TelaDePesquisa();
-        appTelaDePesquisa.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        TelaDePesquisaView appTelaDePesquisa = new TelaDePesquisa();
+        appTelaDePesquisaView.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 }
